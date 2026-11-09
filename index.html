@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>మన ఊరు - అభివృద్ధి వేదిక</title>
+<style>
+:root{--p:#1b5e20;--s:#2e7d32;--a:#ff9800;--bg:#f4f7f6;--t:#333}
+*{box-sizing:border-box;font-family:'Noto Sans Telugu','Segoe UI',Tahoma,sans-serif}
+body{margin:0;background:var(--bg);color:var(--t)}
+.hidden{display:none!important}
+.auth{max-width:420px;margin:0 auto;background:#fff;min-height:100vh;box-shadow:0 0 12px rgba(0,0,0,.1)}
+.splash{width:100%;height:230px;object-fit:cover;display:block;background:linear-gradient(135deg,#2e7d32,#a5d6a7);}
+.splash-ph{height:230px;display:flex;align-items:center;justify-content:center;font-size:80px;background:linear-gradient(135deg,#2e7d32,#a5d6a7)}
+.auth-body{padding:18px;text-align:center}
+input,select,textarea{width:100%;padding:11px;margin:6px 0;border:1px solid #ccc;border-radius:6px;font-size:15px}
+button{width:100%;padding:12px;background:var(--p);color:#fff;border:0;border-radius:6px;font-size:16px;cursor:pointer;margin-top:8px}
+button:disabled{opacity:.6}
+.link{background:none;color:var(--p);text-decoration:underline;font-size:14px;margin-top:2px}
+label.f{display:block;text-align:left;font-size:13px;color:#555;margin-top:6px}
+header{background:var(--p);color:#fff;padding:12px;text-align:center}
+.ht{display:flex;align-items:center;justify-content:center;gap:10px}
+.logo{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
+.who{font-size:12px;margin-top:5px}.who a{color:#ffeb3b}
+.disc{background:#e8f5e9;color:var(--p);padding:10px;text-align:center;font-size:13px;font-weight:bold;border-bottom:1px solid #c8e6c9}
+.wa{text-align:center;padding:12px;background:#fff;border-bottom:1px solid #ddd}
+.wa a{display:inline-block;background:#25D366;color:#fff;padding:10px 22px;border-radius:25px;text-decoration:none;font-weight:bold}
+.nav{display:flex;background:#fff;border-bottom:2px solid #ddd;position:sticky;top:0;z-index:50}
+.ni{flex:1;text-align:center;padding:12px 4px;cursor:pointer;font-weight:bold;font-size:13px;color:#555;border-bottom:3px solid transparent}
+.ni.on{color:var(--p);border-color:var(--p);background:#f1f8e9}
+.wrap{max-width:600px;margin:14px auto;padding:0 12px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.cat{background:#fff;padding:16px 8px;border-radius:8px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.08);cursor:pointer;font-weight:bold;border:1px solid #e0e0e0}
+.cat:hover{background:#e8f5e9;border-color:var(--p)}
+.card{background:#fff;padding:14px;border-radius:10px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.ph{display:flex;justify-content:space-between;font-size:12px;color:#666;gap:6px}
+.badge{background:var(--a);color:#fff;padding:2px 9px;border-radius:12px;font-size:12px}
+.badge.sol{background:#1976d2}.badge.sug{background:#7b1fa2}
+.pimg{width:100%;max-height:320px;object-fit:cover;border-radius:8px;margin:8px 0}
+.acts{display:flex;gap:8px;border-top:1px solid #eee;padding-top:8px;margin-top:8px;flex-wrap:wrap}
+.ab{background:none;color:#555;width:auto;margin:0;padding:6px 8px;font-size:14px}
+.ab.liked{color:#1976d2;font-weight:bold}
+.cm{margin-top:8px;background:#f9f9f9;padding:8px;border-radius:6px;font-size:13px}
+.cm div{margin:3px 0}
+.cin{display:flex;gap:6px;margin-top:6px}.cin input{margin:0}.cin button{width:80px;margin:0}
+.tag{background:red;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px}
+.av{width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle}
+.muted{text-align:center;color:#777;padding:20px}
+</style>
+</head>
+<body>
+
+<!-- ================= సెట్టింగ్స్ (ఇక్కడ మార్చండి) ================= -->
+<script>
+const CFG = {
+  GAS_URL:  "https://script.google.com/macros/s/AKfycbzITUO7zV-679rF7VfIAnxdzYpDzeZZRiAM66klLSfKtvZuLFFqjImr4vXQWSXjKcoO/exec",   // Apps Script Deploy చేశాక వచ్చే URL
+  SPLASH_IMG: "",   // మీ ఊరి ఫోటో లింక్ (ఖాళీ అయితే డిఫాల్ట్ చూపిస్తుంది)
+  LOGO_IMG:   "https://drive.google.com/thumbnail?id=1RqmUIg4wVQ0bvkJzzoOeUva96PTTW7MI&sz=w400",   // లోగో లింక్
+  WA_LINK:    "https://chat.whatsapp.com/YOUR_GROUP_LINK",
+  TITLE:      "మన ఊరు అభివృద్ధి వేదిక"
+};
+</script>
+
+<!-- ============ లాగిన్ / సైన్అప్ ============ -->
+<div id="auth" class="auth">
+  <div id="splashBox"></div>
+  <div class="auth-body">
+    <h2 id="authTitle" style="color:var(--p);margin:4px 0 10px"></h2>
+
+    <div id="fLogin">
+      <h3>లాగిన్</h3>
+      <input id="lPhone" type="tel" inputmode="numeric" placeholder="ఫోన్ నెంబర్">
+      <input id="lPass" type="password" placeholder="పాస్‌వర్డ్">
+      <button onclick="run(this,doLogin)">లాగిన్ అవ్వండి</button>
+      <button class="link" onclick="show('fSignup')">కొత్త ఖాతా తెరవండి (Signup)</button><br>
+      <button class="link" onclick="show('fForgot')">పాస్‌వర్డ్ మర్చిపోయారా?</button>
+    </div>
+
+    <div id="fSignup" class="hidden">
+      <h3>కొత్త ఖాతా</h3>
+      <input id="sName" placeholder="మీ పూర్తి పేరు">
+      <input id="sPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="ఫోన్ నెంబర్ (10 అంకెలు)">
+      <label class="f">ప్రొఫైల్ ఫోటో:</label>
+      <input id="sPhoto" type="file" accept="image/*">
+      <input id="sPass" type="password" placeholder="పాస్‌వర్డ్ (కనీసం 6 అక్షరాలు)">
+      <input id="sRe" type="password" placeholder="పాస్‌వర్డ్ మళ్ళీ ఎంటర్ చేయండి">
+      <select id="sQ"></select>
+      <input id="sA" placeholder="సెక్యూరిటీ ప్రశ్నకు సమాధానం">
+      <button onclick="run(this,doSignup)">రిజిస్టర్ అవ్వండి</button>
+      <button class="link" onclick="show('fLogin')">ఇప్పటికే ఖాతా ఉందా? లాగిన్</button>
+    </div>
+
+    <div id="fForgot" class="hidden">
+      <h3>పాస్‌వర్డ్ మార్చుకోండి</h3>
+      <input id="fPhone" type="tel" inputmode="numeric" placeholder="మీ ఫోన్ నెంబర్">
+      <button id="fNext" onclick="run(this,getQ)">తరువాత</button>
+      <div id="fStep2" class="hidden">
+        <label class="f" id="fQ"></label>
+        <input id="fA" placeholder="సమాధానం">
+        <input id="fNew" type="password" placeholder="కొత్త పాస్‌వర్డ్">
+        <button onclick="run(this,doReset)">కొత్త పాస్‌వర్డ్ సేవ్ చేయండి</button>
+      </div>
+      <button class="link" onclick="show('fLogin')">వెనక్కి</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ మెయిన్ స్క్రీన్ ============ -->
+<div id="app" class="hidden">
+  <header>
+    <div class="ht"><div id="logo" class="logo"></div><h2 id="appTitle" style="margin:0;font-size:20px"></h2></div>
+    <div class="who">స్వాగతం, <b id="uName"></b> <span id="adm" class="tag hidden">ADMIN</span> | <a href="#" onclick="logout();return false">లాగ్ అవుట్</a></div>
+  </header>
+  <div class="disc">ఇది కుల మత రాజకీయాలకు సంబంధించిన వేదిక కాదు. మన ఊరు అభివృద్ధి కోసం మాత్రమే</div>
+  <div class="wa"><a id="waBtn" target="_blank" rel="noopener">💬 జాయిన్ WhatsApp గ్రూప్</a></div>
+
+  <div class="nav">
+    <div class="ni on" onclick="tab('feed',this)">📰 ఫీడ్</div>
+    <div class="ni" onclick="tab('problems',this)">⚠️ సమస్యలు-పరిష్కారాలు</div>
+    <div class="ni" onclick="tab('suggestions',this)">💡 సలహాలు-సూచనలు</div>
+  </div>
+
+  <div class="wrap">
+    <div id="vFeed"><button class="link" onclick="loadFeed()" style="text-align:right">🔄 రిఫ్రెష్</button><div id="list"></div></div>
+
+    <div id="vCat" class="hidden">
+      <h3 id="catTitle" style="color:var(--p)"></h3>
+      <div class="grid" id="grid"></div>
+
+      <div id="form" class="card hidden">
+        <h4 id="fHead" style="margin-top:0;color:var(--p)"></h4>
+        <div id="kindBox">
+          <label class="f">ఏది నమోదు చేస్తున్నారు?</label>
+          <select id="pKind" onchange="kindChange()">
+            <option value="సమస్య">సమస్య నమోదు</option>
+            <option value="పరిష్కారం">పరిష్కారం సూచించడం</option>
+          </select>
+        </div>
+        <input id="pTitle" placeholder="శీర్షిక">
+        <textarea id="pDet" rows="3" placeholder="పూర్తి వివరాలు..."></textarea>
+        <input id="pAddr" placeholder="అడ్రస్ / ప్రాంతం">
+        <div id="photoBox"><label class="f">ఫోటో (సమస్యకు):</label><input id="pPhoto" type="file" accept="image/*"></div>
+        <input id="pName" placeholder="మీ పేరు">
+        <input id="pPhone" type="tel" placeholder="మీ ఫోన్ నెంబర్">
+        <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:8px 0">
+          <input id="pShow" type="checkbox" checked style="width:auto;margin:0"> నా పేరు, ఫోన్ నెంబర్ ఇతరులకు కనిపించాలి (టిక్ తీసేస్తే కనిపించవు)
+        </label>
+        <button onclick="run(this,submitPost)">పోస్ట్ చేయండి</button>
+        <button class="link" onclick="backCat()">వెనక్కి</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATS=[["🛣️","రోడ్లు"],["🚰","డ్రైనేజీలు"],["💡","వీధి లైట్లు"],["🚿","కుళాయిలు"],["🏛️","పంచాయితీ"],["🏫","పాఠశాల"],["🌊","చెరువులు"],["💧","కాలువలు"],["🪦","స్మశానం"],["📌","ఇతరాలు"]];
+const QS={pet:"మీ మొదటి పెంపుడు జంతువు పేరు?",school:"మీ మొదటి పాఠశాల పేరు?",birth:"మీరు పుట్టిన ఊరు?",mother:"మీ అమ్మగారి పుట్టిన ఊరు?",friend:"మీ చిన్ననాటి స్నేహితుని పేరు?"};
+let me=null,tok=null,section="problems",cat="",posts=[];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const img=id=>id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w900`:"";
+
+async function api(action,data={}){
+  if(CFG.GAS_URL.startsWith("YOUR_"))throw new Error("CFG.GAS_URL సెట్ చేయలేదు");
+  const r=await fetch(CFG.GAS_URL,{method:"POST",body:JSON.stringify({action,phone:me?.phone,token:tok,...data})});
+  const j=await r.json();
+  if(!j.ok)throw new Error(j.error);
+  return j;
+}
+async function run(btn,fn){
+  btn.disabled=true;
+  try{await fn()}catch(e){alert(e.message||e);if(/లాగిన్/.test(e.message))logout()}
+  btn.disabled=false;
+}
+function readImg(file,max=900){return new Promise((res,rej)=>{
+  if(!file)return res("");
+  const im=new Image(),u=URL.createObjectURL(file);
+  im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");
+    c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+    URL.revokeObjectURL(u);res(c.toDataURL("image/jpeg",.8));};
+  im.onerror=()=>rej(new Error("ఫోటో చదవలేకపోయాం"));im.src=u;});}
+
+/* ---------- Auth ---------- */
+function show(id){["fLogin","fSignup","fForgot"].forEach(x=>$(x).classList.toggle("hidden",x!==id));}
+async function doLogin(){
+  const j=await api("login",{phone:$("lPhone").value.trim(),pass:$("lPass").value});
+  me=j.user;tok=j.token;localStorage.setItem("vs",JSON.stringify({me,tok}));enter();
+}
+async function doSignup(){
+  const pass=$("sPass").value;
+  if(pass!==$("sRe").value)throw new Error("పాస్‌వర్డ్‌లు సరిపోలడం లేదు!");
+  if(!$("sPhoto").files[0])throw new Error("ప్రొఫైల్ ఫోటో ఇవ్వండి");
+  await api("signup",{name:$("sName").value.trim(),phone:$("sPhone").value.trim(),pass,secQ:$("sQ").value,secA:$("sA").value,photo:await readImg($("sPhoto").files[0],400)});
+  alert("రిజిస్ట్రేషన్ విజయవంతం! ఇప్పుడు లాగిన్ అవ్వండి.");$("lPhone").value=$("sPhone").value;show("fLogin");
+}
+async function getQ(){
+  const j=await api("question",{phone:$("fPhone").value.trim()});
+  $("fQ").textContent=QS[j.secQ]||j.secQ;$("fStep2").classList.remove("hidden");$("fNext").classList.add("hidden");
+}
+async function doReset(){
+  await api("reset",{phone:$("fPhone").value.trim(),secA:$("fA").value,newPass:$("fNew").value});
+  alert("కొత్త పాస్‌వర్డ్ సేవ్ అయింది! లాగిన్ అవ్వండి.");$("fStep2").classList.add("hidden");$("fNext").classList.remove("hidden");show("fLogin");
+}
+function logout(){me=null;tok=null;localStorage.removeItem("vs");$("app").classList.add("hidden");$("auth").classList.remove("hidden");}
+function enter(){
+  $("auth").classList.add("hidden");$("app").classList.remove("hidden");
+  $("uName").textContent=me.name;$("adm").classList.toggle("hidden",!me.isAdmin);
+  tab("feed",document.querySelector(".ni"));
+}
+
+/* ---------- Tabs ---------- */
+function tab(t,el){
+  document.querySelectorAll(".ni").forEach(n=>n.classList.remove("on"));el.classList.add("on");
+  const feed=t==="feed";$("vFeed").classList.toggle("hidden",!feed);$("vCat").classList.toggle("hidden",feed);
+  if(feed){loadFeed();return;}
+  section=t;backCat();
+  $("catTitle").textContent=t==="problems"?"సమస్య / పరిష్కారం ఏ విభాగానికి చెందినది?":"సలహా / సూచన ఏ విభాగానికి చెందినది?";
+}
+function backCat(){$("form").classList.add("hidden");$("grid").classList.remove("hidden");$("catTitle").classList.remove("hidden");}
+function openForm(c){
+  cat=c;$("grid").classList.add("hidden");$("catTitle").classList.add("hidden");$("form").classList.remove("hidden");
+  $("fHead").textContent=c+" - వివరాలు నమోదు చేయండి";
+  $("kindBox").classList.toggle("hidden",section!=="problems");$("pKind").value="సమస్య";kindChange();
+  ["pTitle","pDet","pAddr"].forEach(i=>$(i).value="");$("pPhoto").value="";
+  $("pName").value=me.name;$("pPhone").value=me.phone;$("pShow").checked=true;
+}
+function kindChange(){$("photoBox").classList.toggle("hidden",!(section==="problems"&&$("pKind").value==="సమస్య"));}
+async function submitPost(){
+  const type=section==="problems"?$("pKind").value:"సలహా";
+  const photo=(!$("photoBox").classList.contains("hidden"))?await readImg($("pPhoto").files[0]):"";
+  await api("addPost",{type,category:cat,title:$("pTitle").value.trim(),details:$("pDet").value.trim(),address:$("pAddr").value.trim(),
+    name:$("pName").value.trim(),pphone:$("pPhone").value.trim(),showId:$("pShow").checked,photo});
+  alert("మీ పోస్ట్ ఫీడ్ లో నమోదైంది!");tab("feed",document.querySelector(".ni"));
+}
+
+/* ---------- Feed ---------- */
+async function loadFeed(){
+  $("list").innerHTML='<div class="muted">లోడ్ అవుతోంది...</div>';
+  try{posts=(await api("list")).posts;renderFeed();}
+  catch(e){$("list").innerHTML=`<div class="muted">${esc(e.message)}</div>`;if(/లాగిన్/.test(e.message))logout();}
+}
+function renderFeed(){
+  if(!posts.length){$("list").innerHTML='<div class="muted">ఇంకా పోస్ట్‌లు ఏవీ లేవు.</div>';return;}
+  $("list").innerHTML=posts.map((p,i)=>{
+    const bc=p.type==="పరిష్కారం"?"sol":p.type==="సలహా"?"sug":"";
+    const who=p.anon?"👤 గోప్యం":`👤 ${esc(p.name)} (${esc(p.phone)})`;
+    return `<div class="card">
+      <div class="ph"><span class="badge ${bc}">${esc(p.type)} • ${esc(p.category)}</span><span>${esc(p.date)}</span></div>
+      <h3 style="margin:8px 0 4px">${esc(p.title)}</h3>
+      <p style="margin:4px 0;white-space:pre-wrap">${esc(p.details)}</p>
+      <small style="color:#555">📍 ${esc(p.address)||"ఇవ్వలేదు"} | ${who}</small>
+      ${p.photo?`<img class="pimg" loading="lazy" src="${img(p.photo)}" alt="">`:""}
+      <div class="acts">
+        <button class="ab ${p.liked?"liked":""}" onclick="act(this,()=>like(${i}))">👍 లైక్ (${p.likes})</button>
+        <button class="ab" onclick="document.getElementById('c${i}').classList.toggle('hidden')">💬 కామెంట్ (${p.comments.length})</button>
+        <button class="ab" onclick="share(${i})">🔗 షేర్</button>
+        ${p.canDelete?`<button class="ab" style="color:#c62828" onclick="act(this,()=>del(${i}))">🗑️ తొలగించు</button>`:""}
+      </div>
+      <div id="c${i}" class="cm ${p.comments.length?"":"hidden"}">
+        ${p.comments.map(c=>`<div><b>${esc(c.name)}:</b> ${esc(c.text)}</div>`).join("")}
+        <div class="cin"><input id="ci${i}" placeholder="కామెంట్ రాయండి..." maxlength="500"><button onclick="act(this,()=>comment(${i}))">పంపు</button></div>
+      </div></div>`;}).join("");
+}
+async function act(b,fn){b.disabled=true;try{await fn()}catch(e){alert(e.message)}b.disabled=false;}
+async function like(i){await api("like",{id:posts[i].id});await loadFeed();}
+async function comment(i){const t=$("ci"+i).value.trim();if(!t)return;await api("comment",{id:posts[i].id,text:t});await loadFeed();}
+async function del(i){if(!confirm("ఈ పోస్ట్ తొలగించాలా?"))return;await api("delete",{id:posts[i].id});await loadFeed();}
+function share(i){
+  const p=posts[i],text=`${p.title}\n${p.details}\n\n— ${CFG.TITLE}`;
+  if(navigator.share)navigator.share({title:p.title,text,url:location.href}).catch(()=>{});
+  else if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>alert("కాపీ అయింది, ఎక్కడైనా పేస్ట్ చేయండి"));
+  else prompt("కాపీ చేయండి:",text);
+}
+
+/* ---------- Init ---------- */
+(function(){
+  document.title=CFG.TITLE;$("authTitle").textContent=CFG.TITLE;$("appTitle").textContent="మన ఊరు - మన బాధ్యత";
+  $("splashBox").innerHTML=CFG.SPLASH_IMG?`<img class="splash" src="${esc(CFG.SPLASH_IMG)}" alt="">`:'<div class="splash-ph">🌾🏡</div>';
+  $("logo").innerHTML=CFG.LOGO_IMG?`<img class="logo" src="${esc(CFG.LOGO_IMG)}" alt="">`:"🏡";
+  $("waBtn").href=CFG.WA_LINK;
+  const opts=Object.entries(QS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");$("sQ").innerHTML=opts;
+  try{const s=JSON.parse(localStorage.getItem("vs")||"null");if(s&&s.tok){me=s.me;tok=s.tok;enter();}}catch(e){}
+  $("grid").innerHTML=CATS.map(([e,n])=>`<div class="cat" onclick="openForm('${n}')">${e}<br>${n}</div>`).join("");
+})();
+</script>
+</body>
+</html>
