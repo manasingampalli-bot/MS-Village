@@ -45,6 +45,8 @@ header{background:var(--p);color:#fff;padding:12px;text-align:center}
 .cin{display:flex;gap:6px;margin-top:6px}.cin input{margin:0}.cin button{width:80px;margin:0}
 .tag{background:red;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px}
 .av{width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle}
+.cimg{display:block;max-width:100%;max-height:220px;border-radius:6px;margin:4px 0}
+.cb{font-weight:bold;color:var(--p);margin-bottom:4px}
 .muted{text-align:center;color:#777;padding:20px}
 </style>
 </head>
@@ -127,19 +129,17 @@ const CFG = {
       <h3 id="catTitle" style="color:var(--p)"></h3>
       <div class="grid" id="grid"></div>
 
+      <div id="secWrap">
+        <h3 id="secHead" style="color:var(--p);margin-top:18px"></h3>
+        <div id="listSec"></div>
+      </div>
+
       <div id="form" class="card hidden">
         <h4 id="fHead" style="margin-top:0;color:var(--p)"></h4>
-        <div id="kindBox">
-          <label class="f">ఏది నమోదు చేస్తున్నారు?</label>
-          <select id="pKind" onchange="kindChange()">
-            <option value="సమస్య">సమస్య నమోదు</option>
-            <option value="పరిష్కారం">పరిష్కారం సూచించడం</option>
-          </select>
-        </div>
         <input id="pTitle" placeholder="శీర్షిక">
         <textarea id="pDet" rows="3" placeholder="పూర్తి వివరాలు..."></textarea>
         <input id="pAddr" placeholder="అడ్రస్ / ప్రాంతం">
-        <div id="photoBox"><label class="f">ఫోటో (సమస్యకు):</label><input id="pPhoto" type="file" accept="image/*"></div>
+        <div id="photoBox"><label class="f">ఫోటో (ఐచ్ఛికం):</label><input id="pPhoto" type="file" accept="image/*"></div>
         <input id="pName" placeholder="మీ పేరు">
         <input id="pPhone" type="tel" placeholder="మీ ఫోన్ నెంబర్">
         <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:8px 0">
@@ -209,41 +209,54 @@ function enter(){
 }
 
 /* ---------- Tabs ---------- */
+let curTab="feed";const openC=new Set();
 function tab(t,el){
   document.querySelectorAll(".ni").forEach(n=>n.classList.remove("on"));el.classList.add("on");
-  const feed=t==="feed";$("vFeed").classList.toggle("hidden",!feed);$("vCat").classList.toggle("hidden",feed);
-  if(feed){loadFeed();return;}
-  section=t;backCat();
-  $("catTitle").textContent=t==="problems"?"సమస్య / పరిష్కారం ఏ విభాగానికి చెందినది?":"సలహా / సూచన ఏ విభాగానికి చెందినది?";
+  curTab=t;const feed=t==="feed";
+  $("vFeed").classList.toggle("hidden",!feed);$("vCat").classList.toggle("hidden",feed);
+  if(!feed){
+    section=t;backCat();
+    $("catTitle").textContent=t==="problems"?"➕ కొత్త సమస్య నమోదు చేయండి – విభాగం ఎంచుకోండి:":"➕ కొత్త సలహా / సూచన – విభాగం ఎంచుకోండి:";
+    $("secHead").textContent=t==="problems"?"⚠️ నమోదైన సమస్యలు":"💡 నమోదైన సలహాలు-సూచనలు";
+  }
+  loadFeed();
 }
-function backCat(){$("form").classList.add("hidden");$("grid").classList.remove("hidden");$("catTitle").classList.remove("hidden");}
+function backCat(){$("form").classList.add("hidden");["grid","catTitle","secWrap"].forEach(x=>$(x).classList.remove("hidden"));}
 function openForm(c){
-  cat=c;$("grid").classList.add("hidden");$("catTitle").classList.add("hidden");$("form").classList.remove("hidden");
-  $("fHead").textContent=c+" - వివరాలు నమోదు చేయండి";
-  $("kindBox").classList.toggle("hidden",section!=="problems");$("pKind").value="సమస్య";kindChange();
+  cat=c;["grid","catTitle","secWrap"].forEach(x=>$(x).classList.add("hidden"));$("form").classList.remove("hidden");
+  $("fHead").textContent=c+(section==="problems"?" - సమస్య వివరాలు":" - సలహా / సూచన వివరాలు");
+  $("pTitle").placeholder=section==="problems"?"సమస్య శీర్షిక":"సలహా శీర్షిక";
   ["pTitle","pDet","pAddr"].forEach(i=>$(i).value="");$("pPhoto").value="";
   $("pName").value=me.name;$("pPhone").value=me.phone;$("pShow").checked=true;
 }
-function kindChange(){$("photoBox").classList.toggle("hidden",!(section==="problems"&&$("pKind").value==="సమస్య"));}
 async function submitPost(){
-  const type=section==="problems"?$("pKind").value:"సలహా";
-  const photo=(!$("photoBox").classList.contains("hidden"))?await readImg($("pPhoto").files[0]):"";
+  const type=section==="problems"?"సమస్య":"సలహా";
+  const photo=await readImg($("pPhoto").files[0]);
   await api("addPost",{type,category:cat,title:$("pTitle").value.trim(),details:$("pDet").value.trim(),address:$("pAddr").value.trim(),
     name:$("pName").value.trim(),pphone:$("pPhone").value.trim(),showId:$("pShow").checked,photo});
-  alert("మీ పోస్ట్ ఫీడ్ లో నమోదైంది!");tab("feed",document.querySelector(".ni"));
+  alert("మీ పోస్ట్ నమోదైంది! ఫీడ్ లో కూడా కనిపిస్తుంది.");
+  tab(section,document.querySelectorAll(".ni")[section==="problems"?1:2]);
 }
 
-/* ---------- Feed ---------- */
-async function loadFeed(){
-  $("list").innerHTML='<div class="muted">లోడ్ అవుతోంది...</div>';
-  try{posts=(await api("list")).posts;renderFeed();}
-  catch(e){$("list").innerHTML=`<div class="muted">${esc(e.message)}</div>`;if(/లాగిన్/.test(e.message))logout();}
+/* ---------- Feed / Lists ---------- */
+async function loadFeed(quiet){
+  const el=$(curTab==="feed"?"list":"listSec");
+  if(!quiet)el.innerHTML='<div class="muted">లోడ్ అవుతోంది...</div>';
+  try{posts=(await api("list")).posts;renderAll();}
+  catch(e){el.innerHTML=`<div class="muted">${esc(e.message)}</div>`;if(/లాగిన్/.test(e.message))logout();}
 }
-function renderFeed(){
-  if(!posts.length){$("list").innerHTML='<div class="muted">ఇంకా పోస్ట్‌లు ఏవీ లేవు.</div>';return;}
-  $("list").innerHTML=posts.map((p,i)=>{
-    const bc=p.type==="పరిష్కారం"?"sol":p.type==="సలహా"?"sug":"";
+function renderAll(){
+  if(curTab==="feed")renderList("list",null,"f");
+  else renderList("listSec",curTab==="problems"?"సమస్య":"సలహా",curTab==="problems"?"p":"s");
+}
+function renderList(elId,type,pfx){
+  const el=$(elId);
+  const arr=posts.map((p,i)=>[p,i]).filter(([p])=>!type||(type==="సలహా"?p.type==="సలహా":p.type!=="సలహా"));
+  if(!arr.length){el.innerHTML='<div class="muted">ఇంకా పోస్ట్‌లు ఏవీ లేవు.</div>';return;}
+  el.innerHTML=arr.map(([p,i])=>{
+    const prob=p.type!=="సలహా",key=pfx+i,bc=prob?"":"sug";
     const who=p.anon?"👤 గోప్యం":`👤 ${esc(p.name)} (${esc(p.phone)})`;
+    const open=p.comments.length||openC.has(key);
     return `<div class="card">
       <div class="ph"><span class="badge ${bc}">${esc(p.type)} • ${esc(p.category)}</span><span>${esc(p.date)}</span></div>
       <h3 style="margin:8px 0 4px">${esc(p.title)}</h3>
@@ -252,19 +265,28 @@ function renderFeed(){
       ${p.photo?`<img class="pimg" loading="lazy" src="${img(p.photo)}" alt="">`:""}
       <div class="acts">
         <button class="ab ${p.liked?"liked":""}" onclick="act(this,()=>like(${i}))">👍 లైక్ (${p.likes})</button>
-        <button class="ab" onclick="document.getElementById('c${i}').classList.toggle('hidden')">💬 కామెంట్ (${p.comments.length})</button>
+        <button class="ab" onclick="toggleC('${key}')">${prob?"💡 పరిష్కారం":"💬 కామెంట్"} (${p.comments.length})</button>
         <button class="ab" onclick="share(${i})">🔗 షేర్</button>
         ${p.canDelete?`<button class="ab" style="color:#c62828" onclick="act(this,()=>del(${i}))">🗑️ తొలగించు</button>`:""}
       </div>
-      <div id="c${i}" class="cm ${p.comments.length?"":"hidden"}">
-        ${p.comments.map(c=>`<div><b>${esc(c.name)}:</b> ${esc(c.text)}</div>`).join("")}
-        <div class="cin"><input id="ci${i}" placeholder="కామెంట్ రాయండి..." maxlength="500"><button onclick="act(this,()=>comment(${i}))">పంపు</button></div>
+      <div id="c${key}" class="cm ${open?"":"hidden"}">
+        <div class="cb">${prob?"💡 పరిష్కారాలు":"💬 అభిప్రాయాలు / సూచనలు"}</div>
+        ${p.comments.map(c=>`<div><b>${esc(c.name)}:</b> ${esc(c.text)}${c.photo?`<img class="cimg" loading="lazy" src="${img(c.photo)}" alt="">`:""}</div>`).join("")||'<div style="color:#888">ఇంకా ఏమీ లేవు</div>'}
+        <div class="cin"><input id="ci${key}" placeholder="${prob?"మీ పరిష్కారం రాయండి...":"మీ అభిప్రాయం రాయండి..."}" maxlength="500">
+          <label class="ab" style="cursor:pointer">📷<input id="cf${key}" type="file" accept="image/*" hidden onchange="this.parentNode.firstChild.textContent='✅'"></label>
+          <button onclick="act(this,()=>comment(${i},'${key}'))">పంపు</button></div>
       </div></div>`;}).join("");
 }
+function toggleC(key){const e=$("c"+key);e.classList.toggle("hidden");e.classList.contains("hidden")?openC.delete(key):openC.add(key);}
 async function act(b,fn){b.disabled=true;try{await fn()}catch(e){alert(e.message)}b.disabled=false;}
-async function like(i){await api("like",{id:posts[i].id});await loadFeed();}
-async function comment(i){const t=$("ci"+i).value.trim();if(!t)return;await api("comment",{id:posts[i].id,text:t});await loadFeed();}
-async function del(i){if(!confirm("ఈ పోస్ట్ తొలగించాలా?"))return;await api("delete",{id:posts[i].id});await loadFeed();}
+async function like(i){await api("like",{id:posts[i].id});await loadFeed(true);}
+async function comment(i,key){
+  const t=$("ci"+key).value.trim(),f=$("cf"+key).files[0];
+  if(!t&&!f)return;
+  await api("comment",{id:posts[i].id,text:t,photo:await readImg(f,800)});
+  openC.add(key);await loadFeed(true);
+}
+async function del(i){if(!confirm("ఈ పోస్ట్ తొలగించాలా?"))return;await api("delete",{id:posts[i].id});await loadFeed(true);}
 function share(i){
   const p=posts[i],text=`${p.title}\n${p.details}\n\n— ${CFG.TITLE}`;
   if(navigator.share)navigator.share({title:p.title,text,url:location.href}).catch(()=>{});
@@ -275,7 +297,8 @@ function share(i){
 /* ---------- Init ---------- */
 (function(){
   document.title=CFG.TITLE;$("authTitle").textContent=CFG.TITLE;$("appTitle").textContent="మన ఊరు - మన బాధ్యత";
-  $("splashBox").innerHTML=CFG.SPLASH_IMG?`<img class="splash" src="${esc(CFG.SPLASH_IMG)}" alt="">`:'<div class="splash-ph">🌾🏡</div>';
+  const sp=CFG.SPLASH_IMG||CFG.LOGO_IMG;
+  $("splashBox").innerHTML=sp?`<img class="splash" src="${esc(sp)}" alt="">`:'<div class="splash-ph">🌾🏡</div>';
   $("logo").innerHTML=CFG.LOGO_IMG?`<img class="logo" src="${esc(CFG.LOGO_IMG)}" alt="">`:"🏡";
   $("waBtn").href=CFG.WA_LINK;
   const opts=Object.entries(QS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");$("sQ").innerHTML=opts;
