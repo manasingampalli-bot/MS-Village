@@ -18,7 +18,7 @@ button{width:100%;padding:12px;background:var(--p);color:#fff;border:0;border-ra
 button:disabled{opacity:.6}
 .link{background:none;color:var(--p);text-decoration:underline;font-size:14px;margin-top:2px}
 label.f{display:block;text-align:left;font-size:13px;color:#555;margin-top:6px}
-header{background:var(--p);color:#fff;padding:12px;text-align:center}
+header{background:var(--p);color:#fff;padding:12px 46px;text-align:center;position:relative}
 .ht{display:flex;align-items:center;justify-content:center;gap:10px}
 .logo{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
 .who{font-size:12px;margin-top:5px}.who a{color:#ffeb3b}
@@ -26,7 +26,7 @@ header{background:var(--p);color:#fff;padding:12px;text-align:center}
 .wa{text-align:center;padding:12px;background:#fff;border-bottom:1px solid #ddd}
 .wa a{display:inline-block;background:#25D366;color:#fff;padding:10px 22px;border-radius:25px;text-decoration:none;font-weight:bold}
 .nav{display:flex;background:#fff;border-bottom:2px solid #ddd;position:sticky;top:0;z-index:50}
-.ni{flex:1;text-align:center;padding:12px 4px;cursor:pointer;font-weight:bold;font-size:13px;color:#555;border-bottom:3px solid transparent}
+.ni{flex:1;text-align:center;padding:12px 2px;cursor:pointer;font-weight:bold;font-size:12px;color:#555;border-bottom:3px solid transparent}
 .ni.on{color:var(--p);border-color:var(--p);background:#f1f8e9}
 .wrap{max-width:600px;margin:14px auto;padding:0 12px}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -47,6 +47,15 @@ header{background:var(--p);color:#fff;padding:12px;text-align:center}
 .av{width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle}
 .cimg{display:block;max-width:100%;max-height:220px;border-radius:6px;margin:4px 0}
 .cb{font-weight:bold;color:var(--p);margin-bottom:4px}
+.burger{position:absolute;right:8px;top:10px;width:auto;margin:0;background:transparent;font-size:28px;padding:2px 10px;line-height:1}
+.drawer{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;justify-content:flex-end}
+.dp{background:var(--bg);width:min(94vw,440px);height:100%;overflow:auto;padding:14px}
+.dx{width:auto;float:right;margin:0;background:#666;padding:6px 12px}
+.prof{display:flex;gap:12px;align-items:center;background:#fff;padding:12px;border-radius:10px;margin:8px 0}
+.mav{width:64px;height:64px;border-radius:50%;overflow:hidden;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:32px;flex:none}
+.mav img{width:100%;height:100%;object-fit:cover}
+.resb{background:#e8f5e9;border-left:4px solid #2e7d32;padding:6px 8px;border-radius:4px;font-size:13px;margin:6px 0;color:#1b5e20;line-height:1.6}
+.srow{background:#fff;padding:12px;border-radius:8px;margin-bottom:10px;border-left:4px solid #2e7d32;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.08);line-height:1.6}
 .muted{text-align:center;color:#777;padding:20px}
 </style>
 </head>
@@ -110,6 +119,7 @@ const CFG = {
 <!-- ============ మెయిన్ స్క్రీన్ ============ -->
 <div id="app" class="hidden">
   <header>
+    <button class="burger" onclick="openMenu()" aria-label="మెనూ">☰</button>
     <div class="ht"><div id="logo" class="logo"></div><h2 id="appTitle" style="margin:0;font-size:20px"></h2></div>
     <div class="who">స్వాగతం, <b id="uName"></b> <span id="adm" class="tag hidden">ADMIN</span> | <a href="#" onclick="logout();return false">లాగ్ అవుట్</a></div>
   </header>
@@ -120,10 +130,16 @@ const CFG = {
     <div class="ni on" onclick="tab('feed',this)">📰 ఫీడ్</div>
     <div class="ni" onclick="tab('problems',this)">⚠️ సమస్యలు-పరిష్కారాలు</div>
     <div class="ni" onclick="tab('suggestions',this)">💡 సలహాలు-సూచనలు</div>
+    <div class="ni" onclick="tab('solved',this)">✅ పరిష్కరించబడినవి</div>
   </div>
 
   <div class="wrap">
     <div id="vFeed"><button class="link" onclick="loadFeed()" style="text-align:right">🔄 రిఫ్రెష్</button><div id="list"></div></div>
+
+    <div id="vSolved" class="hidden">
+      <h3 id="solvedHead" style="color:var(--p)">✅ పరిష్కరించబడిన సమస్యలు</h3>
+      <div id="listSolved"></div>
+    </div>
 
     <div id="vCat" class="hidden">
       <h3 id="catTitle" style="color:var(--p)"></h3>
@@ -152,6 +168,18 @@ const CFG = {
   </div>
 </div>
 
+<div id="drawer" class="drawer hidden" onclick="if(event.target===this)closeMenu()">
+  <div class="dp">
+    <button class="dx" onclick="closeMenu()">✕</button>
+    <h3 style="margin:6px 0;color:var(--p)">👤 నా ప్రొఫైల్</h3>
+    <div class="prof"><div id="mAv" class="mav"></div>
+      <div><b id="mName" style="font-size:17px"></b><div id="mPhone" style="margin:3px 0"></div><small id="mStat" style="color:#555"></small></div></div>
+    <button onclick="logout()" style="background:#c62828">లాగ్ అవుట్</button>
+    <h4 style="color:var(--p)">📋 నేను పోస్ట్ చేసినవి</h4>
+    <div id="listMe"></div>
+  </div>
+</div>
+
 <script>
 const CATS=[["🛣️","రోడ్లు"],["🚰","డ్రైనేజీలు"],["💡","వీధి లైట్లు"],["🚿","కుళాయిలు"],["🏛️","పంచాయితీ"],["🏫","పాఠశాల"],["🌊","చెరువులు"],["💧","కాలువలు"],["🪦","స్మశానం"],["📌","ఇతరాలు"]];
 const QS={pet:"మీ మొదటి పెంపుడు జంతువు పేరు?",school:"మీ మొదటి పాఠశాల పేరు?",birth:"మీరు పుట్టిన ఊరు?",mother:"మీ అమ్మగారి పుట్టిన ఊరు?",friend:"మీ చిన్ననాటి స్నేహితుని పేరు?"};
@@ -174,11 +202,9 @@ async function run(btn,fn){
 }
 const WM="మన సింగంపల్లి";
 function drawWM(ctx,w,h){
-  ctx.save();const fs=Math.max(18,Math.round(w/16));ctx.font=`bold ${fs}px sans-serif`;ctx.textAlign="right";ctx.textBaseline="bottom";
-  ctx.lineWidth=Math.max(2,fs/8);ctx.strokeStyle="rgba(0,0,0,.55)";ctx.fillStyle="rgba(255,255,255,.85)";
-  ctx.strokeText(WM,w-fs/2,h-fs/3);ctx.fillText(WM,w-fs/2,h-fs/3);
-  ctx.translate(w/2,h/2);ctx.rotate(-Math.PI/7);ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.font=`bold ${Math.round(fs*1.6)}px sans-serif`;ctx.fillStyle="rgba(255,255,255,.22)";ctx.fillText(WM,0,0);ctx.restore();
+  ctx.save();const fs=Math.max(11,Math.round(w/42));ctx.font=`bold ${fs}px sans-serif`;ctx.textAlign="right";ctx.textBaseline="bottom";
+  ctx.lineJoin="round";ctx.lineWidth=Math.max(2,fs/5);ctx.strokeStyle="rgba(255,255,255,.7)";ctx.fillStyle="#000";
+  ctx.strokeText(WM,w-fs/2,h-fs/3);ctx.fillText(WM,w-fs/2,h-fs/3);ctx.restore();
 }
 function readImg(file,max=900,wm=false){return new Promise((res,rej)=>{
   if(!file)return res("");
@@ -210,7 +236,7 @@ async function doReset(){
   await api("reset",{phone:$("fPhone").value.trim(),secA:$("fA").value,newPass:$("fNew").value});
   alert("కొత్త పాస్‌వర్డ్ సేవ్ అయింది! లాగిన్ అవ్వండి.");$("fStep2").classList.add("hidden");$("fNext").classList.remove("hidden");show("fLogin");
 }
-function logout(){me=null;tok=null;localStorage.removeItem("vs");$("app").classList.add("hidden");$("auth").classList.remove("hidden");}
+function logout(){closeMenu();me=null;tok=null;localStorage.removeItem("vs");$("app").classList.add("hidden");$("auth").classList.remove("hidden");}
 function enter(){
   $("auth").classList.add("hidden");$("app").classList.remove("hidden");
   $("uName").textContent=me.name;$("adm").classList.toggle("hidden",!me.isAdmin);
@@ -223,8 +249,8 @@ let curTab="feed";const openC=new Set();
 function tab(t,el){
   document.querySelectorAll(".ni").forEach(n=>n.classList.remove("on"));el.classList.add("on");
   curTab=t;const feed=t==="feed";
-  $("vFeed").classList.toggle("hidden",!feed);$("vCat").classList.toggle("hidden",feed);
-  if(!feed){
+  $("vFeed").classList.toggle("hidden",!feed);$("vSolved").classList.toggle("hidden",t!=="solved");$("vCat").classList.toggle("hidden",feed||t==="solved");
+  if(!feed&&t!=="solved"){
     section=t;backCat();
     $("catTitle").textContent=t==="problems"?"➕ కొత్త సమస్య నమోదు చేయండి – విభాగం ఎంచుకోండి:":"➕ కొత్త సలహా / సూచన – విభాగం ఎంచుకోండి:";
     $("secHead").textContent=t==="problems"?"⚠️ నమోదైన సమస్యలు":"💡 నమోదైన సలహాలు-సూచనలు";
@@ -250,34 +276,39 @@ async function submitPost(){
 
 /* ---------- Feed / Lists ---------- */
 async function loadFeed(quiet){
-  const el=$(curTab==="feed"?"list":"listSec");
+  const el=$(curTab==="feed"?"list":curTab==="solved"?"listSolved":"listSec");
   if(!quiet)el.innerHTML='<div class="muted">లోడ్ అవుతోంది...</div>';
   try{posts=(await api("list")).posts;renderAll();}
   catch(e){el.innerHTML=`<div class="muted">${esc(e.message)}</div>`;if(/లాగిన్/.test(e.message))logout();}
 }
 function renderAll(){
+  if(!$("drawer").classList.contains("hidden"))renderMenu();
   if(curTab==="feed")renderList("list",null,"f");
+  else if(curTab==="solved")renderSolved();
   else renderList("listSec",curTab==="problems"?"సమస్య":"సలహా",curTab==="problems"?"p":"s");
 }
-function renderList(elId,type,pfx){
+function renderList(elId,type,pfx,extra){
   const el=$(elId);
-  const arr=posts.map((p,i)=>[p,i]).filter(([p])=>!type||(type==="సలహా"?p.type==="సలహా":p.type!=="సలహా"));
+  const arr=posts.map((p,i)=>[p,i]).filter(([p])=>!type||(type==="సలహా"?p.type==="సలహా":p.type!=="సలహా")).filter(([p])=>!extra||extra(p));
   if(!arr.length){el.innerHTML='<div class="muted">ఇంకా పోస్ట్‌లు ఏవీ లేవు.</div>';return;}
   el.innerHTML=arr.map(([p,i])=>{
     const prob=p.type!=="సలహా",key=pfx+i,bc=prob?"":"sug";
     const who=p.anon?"👤 గోప్యం":`👤 ${esc(p.name)} (${esc(p.phone)})`;
     const open=p.comments.length||openC.has(key);
+    const banner=p.resolved?`<div class="resb">✅ <b>సమస్య పరిష్కరించబడింది</b><br>🛠️ ద్వారా: ${esc(p.resolvedBy)}${p.resolvedMarker&&p.resolvedMarker!==p.resolvedBy?` (నమోదు: ${esc(p.resolvedMarker)})`:""}<br>📅 ${esc(p.resolvedOn)}</div>`:"";
     const sol=(p.code||"").replace("MSS-","MSS-P-");
     return `<div class="card" ${pfx==="f"?`id="post-${esc(p.code)}"`:""}>
       <div class="ph"><span class="badge ${bc}">${esc(p.type)} • ${esc(p.code)} • ${esc(p.category)}</span><span>${esc(p.date)}</span></div>
       <h3 style="margin:8px 0 4px">${esc(p.title)}</h3>
       <p style="margin:4px 0;white-space:pre-wrap">${esc(p.details)}</p>
+      ${banner}
       <small style="color:#555">📍 ${esc(p.address)||"ఇవ్వలేదు"} | ${who}</small>
       ${p.photo?`<img class="pimg" loading="lazy" src="${img(p.photo)}" alt="">`:""}
       <div class="acts">
         <button class="ab ${p.liked?"liked":""}" onclick="act(this,()=>like(${i}))">👍 లైక్ (${p.likes})</button>
         <button class="ab" onclick="toggleC('${key}')">${prob?"💡 పరిష్కారం":"💬 కామెంట్"} (${p.comments.length})</button>
         <button class="ab" onclick="act(this,()=>share(${i}))">🔗 షేర్</button>
+        ${p.canResolve?(p.resolved?`<button class="ab" onclick="act(this,()=>resolve(${i},true))">↩️ మళ్ళీ తెరవండి</button>`:`<button class="ab" style="color:#2e7d32;font-weight:bold" onclick="act(this,()=>resolve(${i},false))">✅ సమస్య పరిష్కరించబడింది</button>`):""}
         ${p.canDelete?`<button class="ab" style="color:#c62828" onclick="act(this,()=>del(${i}))">🗑️ తొలగించు</button>`:""}
       </div>
       <div id="c${key}" class="cm ${open?"":"hidden"}">
@@ -288,6 +319,31 @@ function renderList(elId,type,pfx){
           <button onclick="act(this,()=>comment(${i},'${key}'))">పంపు</button></div>
       </div></div>`;}).join("");
   if(pending&&pfx==="f"){const e=document.getElementById("post-"+pending);if(e){e.scrollIntoView({block:"center"});e.style.outline="3px solid var(--a)";pending=null;}}
+}
+async function resolve(i,undo){
+  const p=posts[i];let by="";
+  if(!undo){by=prompt("ఈ సమస్య ఎవరి ద్వారా పరిష్కరించబడింది? (పేరు / శాఖ)\nఖాళీగా వదిలితే మీ పేరు నమోదవుతుంది.","");if(by===null)return;}
+  else if(!confirm("ఈ సమస్యను మళ్ళీ 'పరిష్కారం కాలేదు' గా మార్చాలా?"))return;
+  await api("resolve",{id:p.id,by:by.trim(),undo:!!undo});await loadFeed(true);
+}
+function renderSolved(){
+  const el=$("listSolved"),arr=posts.filter(p=>p.resolved);
+  $("solvedHead").textContent=`✅ పరిష్కరించబడిన సమస్యలు (${arr.length})`;
+  if(!arr.length){el.innerHTML='<div class="muted">ఇంకా పరిష్కరించబడిన సమస్యలు లేవు.</div>';return;}
+  el.innerHTML=arr.map(p=>`<div class="srow" onclick="gotoPost('${esc(p.code)}')">
+    <b>✅ ${esc(p.code)}</b> • ${esc(p.title)}<br>
+    <small>📂 ${esc(p.category)} | 📍 ${esc(p.address)||"-"}<br>📝 నమోదు: ${esc(p.date)}<br>
+    🛠️ పరిష్కరించినవారు: <b>${esc(p.resolvedBy)}</b> | 📅 ${esc(p.resolvedOn)}</small></div>`).join("");
+}
+function gotoPost(code){closeMenu();pending=code;tab("feed",document.querySelector(".ni"));}
+function openMenu(){$("drawer").classList.remove("hidden");renderMenu();}
+function closeMenu(){$("drawer").classList.add("hidden");}
+function renderMenu(){
+  $("mAv").innerHTML=me.photo?`<img src="${img(me.photo)}" alt="">`:"👤";
+  $("mName").textContent=me.name;$("mPhone").textContent="📞 "+me.phone;
+  const mine=posts.filter(p=>p.mine);
+  $("mStat").textContent=`నా పోస్ట్‌లు: ${mine.length} | పరిష్కారమైనవి: ${mine.filter(p=>p.resolved).length}`;
+  renderList("listMe",null,"m",p=>p.mine);
 }
 function toggleC(key){const e=$("c"+key);e.classList.toggle("hidden");e.classList.contains("hidden")?openC.delete(key):openC.add(key);}
 async function act(b,fn){b.disabled=true;try{await fn()}catch(e){alert(e.message)}b.disabled=false;}
@@ -314,7 +370,7 @@ async function makeCard(p){
   x.fillStyle="#e65100";x.font="bold 50px sans-serif";x.fillText((prob?"సమస్య - ":"సలహా - ")+p.code,pad,y);y+=30;
   x.fillStyle="#222";x.font="bold 44px sans-serif";tl.forEach(l=>{y+=58;x.fillText(l,pad,y);});y+=20;
   if(im){x.drawImage(im,pad,y,W-2*pad,ph);drawWM(x,W,H);y+=ph+30;}
-  else{x.save();x.translate(W/2,H/2);x.rotate(-Math.PI/7);x.font="bold 110px sans-serif";x.fillStyle="rgba(27,94,32,.08)";x.textAlign="center";x.fillText(WM,0,0);x.restore();}
+  else drawWM(x,W,H);
   x.fillStyle="#1b5e20";x.font="bold 34px sans-serif";x.textAlign="center";x.fillText("🔗 పూర్తి వివరాలకు క్రింది లింక్ చూడండి",W/2,H-50);
   const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.9));
   return new File([blob],p.code+".jpg",{type:"image/jpeg"});
