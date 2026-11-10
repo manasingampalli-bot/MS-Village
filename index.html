@@ -10,8 +10,8 @@
 body{margin:0;background:var(--bg);color:var(--t)}
 .hidden{display:none!important}
 .auth{max-width:420px;margin:0 auto;background:#fff;min-height:100vh;box-shadow:0 0 12px rgba(0,0,0,.1)}
-.splash{width:100%;height:230px;object-fit:cover;display:block;background:linear-gradient(135deg,#2e7d32,#a5d6a7);}
-.splash-ph{height:230px;display:flex;align-items:center;justify-content:center;font-size:80px;background:linear-gradient(135deg,#2e7d32,#a5d6a7)}
+.splash{width:110px;height:110px;object-fit:cover;border-radius:50%;display:block;margin:22px auto 0;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.splash-ph{width:110px;height:110px;border-radius:50%;margin:22px auto 0;display:flex;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,#2e7d32,#a5d6a7)}
 .auth-body{padding:18px;text-align:center}
 input,select,textarea{width:100%;padding:11px;margin:6px 0;border:1px solid #ccc;border-radius:6px;font-size:15px}
 button{width:100%;padding:12px;background:var(--p);color:#fff;border:0;border-radius:6px;font-size:16px;cursor:pointer;margin-top:8px}
@@ -172,11 +172,20 @@ async function run(btn,fn){
   try{await fn()}catch(e){alert(e.message||e);if(/లాగిన్/.test(e.message))logout()}
   btn.disabled=false;
 }
-function readImg(file,max=900){return new Promise((res,rej)=>{
+const WM="మన సింగంపల్లి";
+function drawWM(ctx,w,h){
+  ctx.save();const fs=Math.max(18,Math.round(w/16));ctx.font=`bold ${fs}px sans-serif`;ctx.textAlign="right";ctx.textBaseline="bottom";
+  ctx.lineWidth=Math.max(2,fs/8);ctx.strokeStyle="rgba(0,0,0,.55)";ctx.fillStyle="rgba(255,255,255,.85)";
+  ctx.strokeText(WM,w-fs/2,h-fs/3);ctx.fillText(WM,w-fs/2,h-fs/3);
+  ctx.translate(w/2,h/2);ctx.rotate(-Math.PI/7);ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font=`bold ${Math.round(fs*1.6)}px sans-serif`;ctx.fillStyle="rgba(255,255,255,.22)";ctx.fillText(WM,0,0);ctx.restore();
+}
+function readImg(file,max=900,wm=false){return new Promise((res,rej)=>{
   if(!file)return res("");
   const im=new Image(),u=URL.createObjectURL(file);
   im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");
-    c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+    c.width=im.width*k;c.height=im.height*k;const x=c.getContext("2d");x.drawImage(im,0,0,c.width,c.height);
+    if(wm)drawWM(x,c.width,c.height);
     URL.revokeObjectURL(u);res(c.toDataURL("image/jpeg",.8));};
   im.onerror=()=>rej(new Error("ఫోటో చదవలేకపోయాం"));im.src=u;});}
 
@@ -209,6 +218,7 @@ function enter(){
 }
 
 /* ---------- Tabs ---------- */
+let pending=(location.hash.match(/post=([A-Za-z0-9-]+)/)||[])[1]||null;
 let curTab="feed";const openC=new Set();
 function tab(t,el){
   document.querySelectorAll(".ni").forEach(n=>n.classList.remove("on"));el.classList.add("on");
@@ -231,7 +241,7 @@ function openForm(c){
 }
 async function submitPost(){
   const type=section==="problems"?"సమస్య":"సలహా";
-  const photo=await readImg($("pPhoto").files[0]);
+  const photo=await readImg($("pPhoto").files[0],900,true);
   await api("addPost",{type,category:cat,title:$("pTitle").value.trim(),details:$("pDet").value.trim(),address:$("pAddr").value.trim(),
     name:$("pName").value.trim(),pphone:$("pPhone").value.trim(),showId:$("pShow").checked,photo});
   alert("మీ పోస్ట్ నమోదైంది! ఫీడ్ లో కూడా కనిపిస్తుంది.");
@@ -257,8 +267,9 @@ function renderList(elId,type,pfx){
     const prob=p.type!=="సలహా",key=pfx+i,bc=prob?"":"sug";
     const who=p.anon?"👤 గోప్యం":`👤 ${esc(p.name)} (${esc(p.phone)})`;
     const open=p.comments.length||openC.has(key);
-    return `<div class="card">
-      <div class="ph"><span class="badge ${bc}">${esc(p.type)} • ${esc(p.category)}</span><span>${esc(p.date)}</span></div>
+    const sol=(p.code||"").replace("MSS-","MSS-P-");
+    return `<div class="card" ${pfx==="f"?`id="post-${esc(p.code)}"`:""}>
+      <div class="ph"><span class="badge ${bc}">${esc(p.type)} • ${esc(p.code)} • ${esc(p.category)}</span><span>${esc(p.date)}</span></div>
       <h3 style="margin:8px 0 4px">${esc(p.title)}</h3>
       <p style="margin:4px 0;white-space:pre-wrap">${esc(p.details)}</p>
       <small style="color:#555">📍 ${esc(p.address)||"ఇవ్వలేదు"} | ${who}</small>
@@ -266,16 +277,17 @@ function renderList(elId,type,pfx){
       <div class="acts">
         <button class="ab ${p.liked?"liked":""}" onclick="act(this,()=>like(${i}))">👍 లైక్ (${p.likes})</button>
         <button class="ab" onclick="toggleC('${key}')">${prob?"💡 పరిష్కారం":"💬 కామెంట్"} (${p.comments.length})</button>
-        <button class="ab" onclick="share(${i})">🔗 షేర్</button>
+        <button class="ab" onclick="act(this,()=>share(${i}))">🔗 షేర్</button>
         ${p.canDelete?`<button class="ab" style="color:#c62828" onclick="act(this,()=>del(${i}))">🗑️ తొలగించు</button>`:""}
       </div>
       <div id="c${key}" class="cm ${open?"":"hidden"}">
-        <div class="cb">${prob?"💡 పరిష్కారాలు":"💬 అభిప్రాయాలు / సూచనలు"}</div>
+        <div class="cb">${prob?`💡 పరిష్కారాలు • ${esc(sol)}`:`💬 అభిప్రాయాలు / సూచనలు • ${esc(p.code)}`}</div>
         ${p.comments.map(c=>`<div><b>${esc(c.name)}:</b> ${esc(c.text)}${c.photo?`<img class="cimg" loading="lazy" src="${img(c.photo)}" alt="">`:""}</div>`).join("")||'<div style="color:#888">ఇంకా ఏమీ లేవు</div>'}
         <div class="cin"><input id="ci${key}" placeholder="${prob?"మీ పరిష్కారం రాయండి...":"మీ అభిప్రాయం రాయండి..."}" maxlength="500">
           <label class="ab" style="cursor:pointer">📷<input id="cf${key}" type="file" accept="image/*" hidden onchange="this.parentNode.firstChild.textContent='✅'"></label>
           <button onclick="act(this,()=>comment(${i},'${key}'))">పంపు</button></div>
       </div></div>`;}).join("");
+  if(pending&&pfx==="f"){const e=document.getElementById("post-"+pending);if(e){e.scrollIntoView({block:"center"});e.style.outline="3px solid var(--a)";pending=null;}}
 }
 function toggleC(key){const e=$("c"+key);e.classList.toggle("hidden");e.classList.contains("hidden")?openC.delete(key):openC.add(key);}
 async function act(b,fn){b.disabled=true;try{await fn()}catch(e){alert(e.message)}b.disabled=false;}
@@ -283,15 +295,37 @@ async function like(i){await api("like",{id:posts[i].id});await loadFeed(true);}
 async function comment(i,key){
   const t=$("ci"+key).value.trim(),f=$("cf"+key).files[0];
   if(!t&&!f)return;
-  await api("comment",{id:posts[i].id,text:t,photo:await readImg(f,800)});
+  await api("comment",{id:posts[i].id,text:t,photo:await readImg(f,800,true)});
   openC.add(key);await loadFeed(true);
 }
 async function del(i){if(!confirm("ఈ పోస్ట్ తొలగించాలా?"))return;await api("delete",{id:posts[i].id});await loadFeed(true);}
-function share(i){
-  const p=posts[i],text=`${p.title}\n${p.details}\n\n— ${CFG.TITLE}`;
-  if(navigator.share)navigator.share({title:p.title,text,url:location.href}).catch(()=>{});
-  else if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>alert("కాపీ అయింది, ఎక్కడైనా పేస్ట్ చేయండి"));
-  else prompt("కాపీ చేయండి:",text);
+function wrapText(x,t,maxW){const out=[];let line="";for(const ch of String(t)){if(x.measureText(line+ch).width>maxW&&line){out.push(line);line=ch;}else line+=ch;}if(line)out.push(line);return out;}
+async function makeCard(p){
+  let im=null;
+  if(p.photo){const d=(await api("img",{id:p.photo})).data;im=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=d;});}
+  const W=1080,pad=50,prob=p.type!=="సలహా",c=document.createElement("canvas"),x=c.getContext("2d");
+  x.font="bold 44px sans-serif";const tl=wrapText(x,p.title,W-2*pad).slice(0,3);
+  const ph=im?Math.min(900,Math.round(W-2*pad)*im.height/im.width):0;
+  const H=170+90+tl.length*58+20+(im?ph+30:0)+110;
+  c.width=W;c.height=H;x.fillStyle="#fff";x.fillRect(0,0,W,H);
+  x.fillStyle="#1b5e20";x.fillRect(0,0,W,170);x.fillStyle="#fff";x.textAlign="center";x.textBaseline="middle";
+  x.font="bold 50px sans-serif";x.fillText("🏡 "+CFG.TITLE,W/2,70);x.font="30px sans-serif";x.fillText("మన ఊరు - మన బాధ్యత",W/2,125);
+  x.textAlign="left";x.textBaseline="alphabetic";let y=170+70;
+  x.fillStyle="#e65100";x.font="bold 50px sans-serif";x.fillText((prob?"సమస్య - ":"సలహా - ")+p.code,pad,y);y+=30;
+  x.fillStyle="#222";x.font="bold 44px sans-serif";tl.forEach(l=>{y+=58;x.fillText(l,pad,y);});y+=20;
+  if(im){x.drawImage(im,pad,y,W-2*pad,ph);drawWM(x,W,H);y+=ph+30;}
+  else{x.save();x.translate(W/2,H/2);x.rotate(-Math.PI/7);x.font="bold 110px sans-serif";x.fillStyle="rgba(27,94,32,.08)";x.textAlign="center";x.fillText(WM,0,0);x.restore();}
+  x.fillStyle="#1b5e20";x.font="bold 34px sans-serif";x.textAlign="center";x.fillText("🔗 పూర్తి వివరాలకు క్రింది లింక్ చూడండి",W/2,H-50);
+  const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.9));
+  return new File([blob],p.code+".jpg",{type:"image/jpeg"});
+}
+async function share(i){
+  const p=posts[i],prob=p.type!=="సలహా",link=location.href.split("#")[0]+"#post="+p.code;
+  const text=`🏡 *${CFG.TITLE}*\n\n${prob?"⚠️ సమస్య":"💡 సలహా"} - *${p.code}*\n${p.title}\n\n🔗 ${link}`;
+  let file=null;try{file=await makeCard(p);}catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],text});return;}catch(e){if(e.name==="AbortError")return;}}
+  if(file){const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=file.name;a.click();alert("ఫోటో డౌన్‌లోడ్ అయింది. వాట్సాప్ లో టెక్స్ట్ తో పాటు ఆ ఫోటో జత చేయండి.");}
+  window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
 }
 
 /* ---------- Init ---------- */
